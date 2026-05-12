@@ -1,3 +1,7 @@
+[![github CI](https://forge.hekkelman.net/maarten/gxrio/actions/workflows/build-and-test-debian.yml/badge.svg)](https://forge.hekkelman.net/maarten/gxrio/actions)
+[![github CI](https://forge.hekkelman.net/maarten/gxrio/actions/workflows/build-and-test-freebsd.yml/badge.svg)](https://forge.hekkelman.net/maarten/gxrio/actions)
+
+
 About gxrio
 ===========
 
