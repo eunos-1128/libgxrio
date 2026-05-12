@@ -68,7 +68,7 @@ find_package(LibLZMA)
 if(LibLZMA_FOUND)
 	list(APPEND GXRIO_LIBS LibLZMA::LibLZMA)
 else()
-	message(WARNING "LibLZMA not found, will continue with ZLib only")
+	message(WARNING "gxrio: LibLZMA not found, will continue with ZLib only")
 endif()
 
 add_library(gxrio INTERFACE)

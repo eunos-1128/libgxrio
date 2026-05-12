@@ -7,7 +7,6 @@
 #define BOOST_TEST_ALTERNATIVE_INIT_API
 #include <boost/test/included/unit_test.hpp>
 
-#include <stdexcept>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -17,7 +16,7 @@
 namespace tt = boost::test_tools;
 namespace fs = std::filesystem;
 
-fs::path gTestDir = fs::current_path(); // filled in first test
+fs::path gTestDir;
 
 #if HAVE_LibLZMA
 unsigned char kXZData[] = {
@@ -44,6 +43,8 @@ bool init_unit_test()
 		gTestDir = boost::unit_test::framework::master_test_suite().argv[1];
 	else if (fs::current_path().filename().string() == "Debug" or fs::current_path().filename().string() == "Release")
 		gTestDir = fs::current_path().parent_path().parent_path() / "test";
+	else
+	 	gTestDir = fs::current_path();
 
 	return true;
 }

@@ -29,6 +29,8 @@
 /// whether to use a compressions/decompression algorithm is
 /// based on the extension of the \a filename argument.
 
+// NOLINTBEGIN(bugprone-use-after-move)
+
 namespace gxrio
 {
 
@@ -62,9 +64,9 @@ class basic_streambuf : public std::basic_streambuf<CharT, Traits>
 	basic_streambuf(const basic_streambuf &) = delete;
 
 	basic_streambuf(basic_streambuf &&rhs)
-		: streambuf_type(std::move(rhs))
+		: streambuf_type(std::forward<basic_streambuf>(rhs))
 	{
-		m_upstream = std::exchange(rhs.m_upstream, nullptr);
+		m_upstream = std::move(rhs.m_upstream);
 	}
 
 	basic_streambuf &operator=(const basic_streambuf &) = delete;
@@ -318,7 +320,7 @@ class basic_ogzip_streambuf : public basic_streambuf<CharT, Traits>
 
 	/// \brief Move constructor
 	basic_ogzip_streambuf(basic_ogzip_streambuf &&rhs)
-		: base_type(std::move(rhs))
+		: base_type(std::forward<basic_ogzip_streambuf>(rhs))
 	{
 		std::swap(m_zstream, rhs.m_zstream);
 		std::swap(m_gzheader, rhs.m_gzheader);
@@ -333,7 +335,7 @@ class basic_ogzip_streambuf : public basic_streambuf<CharT, Traits>
 	/// \brief Move operator=
 	basic_ogzip_streambuf &operator=(basic_ogzip_streambuf &&rhs)
 	{
-		base_type::operator=(std::move(rhs));
+		base_type::operator=(std::forward<basic_ogzip_streambuf>(rhs));
 
 		std::swap(m_zstream, rhs.m_zstream);
 		std::swap(m_gzheader, rhs.m_gzheader);
@@ -667,7 +669,7 @@ class basic_oxz_streambuf : public basic_streambuf<CharT, Traits>
 
 	/// \brief Move constructor
 	basic_oxz_streambuf(basic_oxz_streambuf &&rhs)
-		: base_type(std::move(rhs))
+		: base_type(std::forward<basic_oxz_streambuf>(rhs))
 	{
 		std::swap(m_xzstream, rhs.m_xzstream);
 
@@ -681,7 +683,7 @@ class basic_oxz_streambuf : public basic_streambuf<CharT, Traits>
 	/// \brief Move operator=
 	basic_oxz_streambuf &operator=(basic_oxz_streambuf &&rhs)
 	{
-		base_type::operator=(std::move(rhs));
+		base_type::operator=(std::forward<basic_oxz_streambuf>(rhs));
 
 		std::swap(m_xzstream, rhs.m_xzstream);
 
@@ -834,7 +836,7 @@ class basic_istream : public std::basic_istream<CharT, Traits>
 
 	/// \brief Regular move constructor
 	basic_istream(basic_istream &&rhs)
-		: base_type(std::move(rhs))
+		: base_type(std::forward<basic_istream>(rhs))
 	{
 		m_gxriobuf = std::move(rhs.m_gxriobuf);
 
@@ -847,7 +849,7 @@ class basic_istream : public std::basic_istream<CharT, Traits>
 	/// \brief Regular move operator=
 	basic_istream &operator=(basic_istream &&rhs)
 	{
-		base_type::operator=(std::move(rhs));
+		base_type::operator=(std::forward<basic_istream>(rhs));
 		m_gxriobuf = std::move(rhs.m_gxriobuf);
 
 		if (m_gxriobuf)
@@ -991,7 +993,7 @@ class basic_ifstream : public basic_istream<CharT, Traits>
 
 	/// \brief Move constructor
 	basic_ifstream(basic_ifstream &&rhs)
-		: base_type(std::move(rhs))
+		: base_type(std::forward<basic_ifstream>(rhs))
 	{
 		m_filebuf = std::move(rhs.m_filebuf);
 
@@ -1008,7 +1010,7 @@ class basic_ifstream : public basic_istream<CharT, Traits>
 	/// \brief Move version of operator=
 	basic_ifstream &operator=(basic_ifstream &&rhs)
 	{
-		base_type::operator=(std::move(rhs));
+		base_type::operator=(std::forward<basic_ifstream>(rhs));
 
 		m_filebuf = std::move(rhs.m_filebuf);
 		if (this->m_gxriobuf)
@@ -1403,5 +1405,7 @@ using ifstream = basic_ifstream<char, std::char_traits<char>>;
 
 // using ostream = basic_ostream<char, std::char_traits<char>>;
 using ofstream = basic_ofstream<char, std::char_traits<char>>;
+
+// NOLINTEND(bugprone-use-after-move)
 
 } // namespace gxrio

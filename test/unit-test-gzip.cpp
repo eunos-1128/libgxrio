@@ -6,26 +6,24 @@
 
 #define BOOST_TEST_ALTERNATIVE_INIT_API
 #include <boost/test/included/unit_test.hpp>
-
-#include <stdexcept>
 #include <filesystem>
-#include <fstream>
-#include <iostream>
-
 #include <gxrio.hpp>
+#include <iostream>
 
 namespace tt = boost::test_tools;
 namespace fs = std::filesystem;
 
-fs::path gTestDir = fs::current_path(); // filled in first test
+fs::path gTestDir;
 
 unsigned char kGZippedData[] = {
-	0x1f, 0x8b, 0x08, 0x08, 0x61, 0xb2, 0xf0, 0x62, 0x00, 0x03, 0x74, 0x65, 0x73, 0x74, 0x2e, 0x74,
-	0x78, 0x74, 0x00, 0xf3, 0x48, 0xcd, 0xc9, 0xc9, 0xd7, 0x51, 0x28, 0xcf, 0x2f, 0xca, 0x49, 0x51,
-	0xe4, 0x02, 0x00, 0x18, 0xa7, 0x55, 0x7b, 0x0e, 0x00, 0x00, 0x00
+	0x1f, 0x8b, 0x08, 0x08, 0x61, 0xb2, 0xf0, 0x62, 0x00, 0x03, 0x74,
+	0x65, 0x73, 0x74, 0x2e, 0x74, 0x78, 0x74, 0x00, 0xf3, 0x48, 0xcd,
+	0xc9, 0xc9, 0xd7, 0x51, 0x28, 0xcf, 0x2f, 0xca, 0x49, 0x51, 0xe4,
+	0x02, 0x00, 0x18, 0xa7, 0x55, 0x7b, 0x0e, 0x00, 0x00, 0x00
 };
 
-static_assert(sizeof(kGZippedData) == 43, "That buffer should be 43 bytes in length");
+static_assert(sizeof(kGZippedData) == 43,
+	"That buffer should be 43 bytes in length");
 
 // --------------------------------------------------------------------
 
@@ -34,6 +32,8 @@ bool init_unit_test()
 	// not a test, just initialize test dir
 	if (boost::unit_test::framework::master_test_suite().argc == 2)
 		gTestDir = boost::unit_test::framework::master_test_suite().argv[1];
+	else
+		gTestDir = fs::current_path();
 
 	return true;
 }
@@ -44,10 +44,7 @@ BOOST_AUTO_TEST_CASE(t_c)
 {
 	struct membuf : public std::streambuf
 	{
-		membuf(char *text, size_t length)
-		{
-			this->setg(text, text, text + length);
-		}
+		membuf(char *text, size_t length) { this->setg(text, text, text + length); }
 	} buffer(reinterpret_cast<char *>(kGZippedData), sizeof(kGZippedData));
 
 	gxrio::istream in(&buffer);
@@ -70,7 +67,6 @@ BOOST_AUTO_TEST_CASE(t_1)
 	std::getline(in, line);
 
 	BOOST_CHECK_EQUAL(line, "Hello, world!");
-
 }
 
 // --------------------------------------------------------------------
@@ -122,10 +118,7 @@ BOOST_AUTO_TEST_CASE(t_copy_1)
 {
 	struct membuf : public std::streambuf
 	{
-		membuf(char *text, size_t length)
-		{
-			this->setg(text, text, text + length);
-		}
+		membuf(char *text, size_t length) { this->setg(text, text, text + length); }
 	} buffer(reinterpret_cast<char *>(kGZippedData), sizeof(kGZippedData));
 
 	gxrio::istream in(&buffer);
@@ -157,11 +150,9 @@ BOOST_AUTO_TEST_CASE(t_copy_2)
 	in_3 = std::move(in_2);
 	std::getline(in_3, line);
 	BOOST_CHECK_EQUAL(line, "Hello, world! - this is line 2");
-
 }
 
 // --------------------------------------------------------------------
-
 
 template <std::size_t SIZE, class CharT = char>
 class ArrayedStreamBuffer : public std::basic_streambuf<CharT>
@@ -174,14 +165,13 @@ class ArrayedStreamBuffer : public std::basic_streambuf<CharT>
 	ArrayedStreamBuffer()
 		: buffer_{} // value-initialize buffer_ to all zeroes
 	{
-		Base::setp(buffer_.data(), buffer_.data() + buffer_.size()); // set std::basic_streambuf
-		                                            // put area pointers to work with 'buffer_'
+		Base::setp(buffer_.data(),
+			buffer_.data() +
+				buffer_.size()); // set std::basic_streambuf
+		                         // put area pointers to work with 'buffer_'
 	}
 
-	void reading()
-	{
-		Base::setg(Base::pbase(), Base::pbase(), Base::pptr());
-	}
+	void reading() { Base::setg(Base::pbase(), Base::pbase(), Base::pptr()); }
 
 	int_type overflow(int_type ch)
 	{
@@ -254,7 +244,7 @@ BOOST_AUTO_TEST_CASE(d_2)
 
 		BOOST_CHECK(b1 == b2);
 
-		if (not (b1 and b2))
+		if (not(b1 and b2))
 			break;
 
 		BOOST_CHECK_EQUAL(line, test_line);
@@ -296,4 +286,3 @@ BOOST_AUTO_TEST_CASE(d_3)
 
 	BOOST_CHECK_EQUAL(line, "aap noot mies");
 }
-

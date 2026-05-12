@@ -24,8 +24,8 @@ the unit-tests of course.
 
 So building and installing is a simple as:
 
-```
-cmake . (optionally providing e.g. -DCMAKE_INSTALL_PREFIX=$HOME/.local )
+```bash
+cmake . # (optionally providing e.g. -DCMAKE_INSTALL_PREFIX=$HOME/.local )
 cmake --build .
 cmake --install .
 ```
@@ -43,7 +43,7 @@ to have support for this.
 
 Opening a file for reading is as simple as:
 
-```
+```cpp
 #include <iostream>
 #include <gxrio.hpp>
 
@@ -69,7 +69,7 @@ This will work on regular files, files compressed with _gzip_ and file compresse
 
 You can also use another buffer as input, as in this example:
 
-```
+```cpp
 	unsigned char kGZippedData[] = {
 		0x1f, 0x8b, 0x08, 0x08, 0x61, 0xb2, 0xf0, 0x62, 0x00, 0x03, 0x74, 0x65, 0x73, 0x74, 0x2e, 0x74,
 		0x78, 0x74, 0x00, 0xf3, 0x48, 0xcd, 0xc9, 0xc9, 0xd7, 0x51, 0x28, 0xcf, 0x2f, 0xca, 0x49, 0x51,
@@ -92,7 +92,7 @@ Writing is similar, however, having a _gxrio::ostream_ class is not very useful.
 do. But a _gxrio::ofstream_ class is provided, it will decide what compression to use based on the
 filename extension. So, writing becomes as simple as:
 
-```
+```cpp
 	gxrio::ofstream out("hello.xz");
 	out << "Hello, world!" << std::endl;
 	out.close();
