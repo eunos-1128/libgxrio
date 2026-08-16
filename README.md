@@ -97,3 +97,19 @@ filename extension. So, writing becomes as simple as:
 	out << "Hello, world!" << std::endl;
 	out.close();
 ```
+
+You can use the compressing streambuf classes in this package directly if you want. See the unit tests
+for the two compression standards for a real world example. It boils down to something like:
+
+```
+	ArrayedStreamBuffer<100> buffer;
+
+	gxrio::basic_oxz_streambuf<char, std::char_traits<char>> zb;
+	zb.init(&buffer);
+
+	zb.sputn("Hello, world!", 13);
+
+	zb.close();
+```
+
+Of course, you can also pass this buffer to a _std::ostream::rdbuf()_ call.

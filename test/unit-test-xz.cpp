@@ -197,7 +197,6 @@ class ArrayedStreamBuffer : public std::basic_streambuf<CharT>
 
 	int_type overflow(int_type ch)
 	{
-		std::cout << "overflow\n";
 		return Base::overflow(ch);
 	}
 
@@ -307,5 +306,61 @@ BOOST_AUTO_TEST_CASE(d_3)
 	std::getline(in, line);
 
 	BOOST_CHECK_EQUAL(line, "aap noot mies");
+}
+
+// --------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE(d_4)
+{
+	// moving a basic_ixz_streambuf while decompressing
+	struct membuf : public std::streambuf
+	{
+		membuf(char *text, size_t length)
+		{
+			this->setg(text, text, text + length);
+		}
+	} buffer(reinterpret_cast<char *>(kXZData), sizeof(kXZData));
+
+	gxrio::basic_ixz_streambuf<char, std::char_traits<char>> zb;
+	zb.init(&buffer);
+
+	zb.sbumpc();
+
+	gxrio::basic_ixz_streambuf<char, std::char_traits<char>> zb2(std::move(zb));
+	zb2.sbumpc();
+
+	gxrio::basic_ixz_streambuf<char, std::char_traits<char>> zb3;
+	zb3 = std::move(zb2);
+
+	std::string line;
+	int ch;
+	while ((ch = zb3.sbumpc()) != std::char_traits<char>::eof())
+		line += static_cast<char>(ch);
+
+	BOOST_CHECK_EQUAL(line, "llo, world!\n");
+}
+
+// --------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE(d_5)
+{
+	ArrayedStreamBuffer<100> buffer;
+
+	gxrio::basic_oxz_streambuf<char, std::char_traits<char>> zb;
+	zb.set_compression_level(1);
+	zb.init(&buffer);
+
+	zb.sputn("Hello, world!", 13);
+
+	zb.close();
+
+	buffer.reading();
+
+	gxrio::istream in(&buffer);
+
+	std::string line;
+	std::getline(in, line);
+
+	BOOST_CHECK_EQUAL(line, "Hello, world!");
 }
 

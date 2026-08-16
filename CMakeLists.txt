@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # set the project name
-project(gxrio VERSION 1.0.0 LANGUAGES CXX)
+project(gxrio VERSION 1.1.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -16,14 +16,15 @@ set(CMAKE_CXX_STANDARD 17 CACHE STRING "The minimum version of C++ required for 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ENABLE_TESTING "Build the unit test applications" OFF)
+option(ENABLE_EXAMPLE "Build the my-zcat example application" OFF)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers")
 elseif(MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-endif()
 
-if(MSVC)
 	# make msvc standards compliant...
 	add_compile_options(/permissive-)
 
@@ -86,7 +87,7 @@ endif()
 
 configure_package_config_file(
 	${PROJECT_SOURCE_DIR}/cmake/gxrioConfig.cmake.in
-	${PROJECT_SOURCE_DIR}/cmake/gxrioConfig.cmake
+	${CMAKE_CURRENT_BINARY_DIR}/cmake/gxrioConfig.cmake
 	INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/gxrio
 	PATH_VARS INCLUDE_INSTALL_DIR
 )
@@ -96,13 +97,13 @@ install(EXPORT gxrioConfig
 	NAMESPACE gxrio::
 	DESTINATION ${CONFIG_LOC})
 install(
-	FILES cmake/gxrioConfig.cmake "${version_config}"
+	FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/gxrioConfig.cmake "${version_config}"
 	DESTINATION ${CONFIG_LOC})
 
 if(ENABLE_TESTING)
 	enable_testing()
 
-	find_package(Boost REQUIRED)
+	find_package(Boost REQUIRED headers)
 
 	list(APPEND tests unit-test unit-test-gzip unit-test-xz)
 
@@ -111,7 +112,7 @@ if(ENABLE_TESTING)
 
 		add_executable(${TEST} ${TEST_SOURCE})
 
-		target_link_libraries(${TEST} gxrio::gxrio Boost::boost)
+		target_link_libraries(${TEST} gxrio::gxrio Boost::headers)
 
 		if(MSVC)
 			# Specify unwind semantics so that MSVC knowns how to handle exceptions
@@ -122,3 +123,8 @@ if(ENABLE_TESTING)
 			COMMAND $<TARGET_FILE:${TEST}> -- ${PROJECT_SOURCE_DIR}/test)
 	endforeach()
 endif(ENABLE_TESTING)
+
+if(ENABLE_EXAMPLE)
+	add_executable(my-zcat example/my-zcat.cpp)
+	target_link_libraries(my-zcat gxrio::gxrio)
+endif()

@@ -1,8 +1,15 @@
 #include <iostream>
+#include <cstdlib>
 #include <gxrio.hpp>
 
 int main(int argc, char * const argv[])
 {
+	if (argc != 2)
+	{
+		std::cerr << "Usage: my-zcat <file>" << std::endl;
+		exit(1);
+	}
+
 	gxrio::ifstream in(argv[1]);
 
 	if (not in.is_open())
