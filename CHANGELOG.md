@@ -30,6 +30,15 @@
 - Generated `gxrioConfig.cmake` is now written to the build directory
   instead of the source tree.
 
+## [1.0.3]
+- Clean up code, remove warnings, add forge actions
+
+## [1.0.2]
+- Support for concatenated gzip files.
+
+## [1.0.1]
+- Now compiles on Windows with MSVC
+
 ## [1.0.0] - 2022-08-29
 
 Initial release.
