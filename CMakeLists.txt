@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # set the project name
-project(gxrio VERSION 1.1.0 LANGUAGES CXX)
+project(gxrio VERSION 1.2.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)

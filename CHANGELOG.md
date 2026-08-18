@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.0] - 2026-08-18
+
+### Changed
+- Unit tests now use Catch2 instead of Boost.Test. The tests are split into
+  `test/unit-test.cpp`, `test/unit-test-gzip.cpp` and `test/unit-test-xz.cpp`
+  and share a common `test/test-main.hpp` that provides the Catch2 main and a
+  `--testdir` command line option.
+- The test suite no longer depends on Boost.
+
 ## [1.1.0] - 2026-08-16
 
 ### Added
