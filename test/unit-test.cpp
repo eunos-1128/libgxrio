@@ -1,20 +1,18 @@
 // Copyright Maarten L. Hekkelman, Radboud University 2008-2013.
-//        Copyright Maarten L. Hekkelman, 2014-2022
-// Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
-//          http://www.boost.org/LICENSE_1_0.txt)
+// SPDX-FileCopyrightText: 2026 Maarten L. Hekkelman
+//
+// SPDX-License-Identifier: BSL-1.0
 
-#define BOOST_TEST_ALTERNATIVE_INIT_API
-#include <boost/test/included/unit_test.hpp>
+#include "test-main.hpp"
+
 #include <filesystem>
 #include <fstream>
-#include <gxrio.hpp>
 #include <iostream>
+#include <string>
+#include <tuple>
+#include <vector>
 
-namespace tt = boost::test_tools;
-namespace fs = std::filesystem;
-
-fs::path gTestDir;
+#include <gxrio.hpp>
 
 #if HAVE_LibLZMA
 unsigned char kXZData[] = {
@@ -32,24 +30,14 @@ unsigned char kGZippedData[] = {
 	0xe4, 0x02, 0x00, 0x18, 0xa7, 0x55, 0x7b, 0x0e, 0x00, 0x00, 0x00
 };
 
-// --------------------------------------------------------------------
-
-bool init_unit_test()
+int main(int argc, char *argv[])
 {
-	// not a test, just initialize test dir
-	if (boost::unit_test::framework::master_test_suite().argc == 2)
-		gTestDir = boost::unit_test::framework::master_test_suite().argv[1];
-	else if (fs::current_path().filename().string() == "Debug" or fs::current_path().filename().string() == "Release")
-		gTestDir = fs::current_path().parent_path().parent_path() / "test";
-	else
-		gTestDir = fs::current_path();
-
-	return true;
+	return gxrio_test_main(argc, argv);
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_1)
+TEST_CASE("reading compressed and uncompressed files", "[t_1]")
 {
 	for (fs::path f : {
 			 gTestDir / "hello.txt.gz",
@@ -60,7 +48,7 @@ BOOST_AUTO_TEST_CASE(t_1)
 	{
 		std::filebuf fb;
 		fb.open(f, std::ios::in | std::ios::binary);
-		BOOST_CHECK(fb.is_open());
+		CHECK(fb.is_open());
 
 		gxrio::istream is(&fb);
 
@@ -68,13 +56,13 @@ BOOST_AUTO_TEST_CASE(t_1)
 
 		getline(is, line);
 
-		BOOST_CHECK_EQUAL(line, "Hello, world!");
+		CHECK(line == "Hello, world!");
 	}
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_2)
+TEST_CASE("reading compressed and uncompressed files via ifstream", "[t_2]")
 {
 	for (fs::path f : {
 			 gTestDir / "hello.txt.gz",
@@ -84,19 +72,19 @@ BOOST_AUTO_TEST_CASE(t_2)
 			 gTestDir / "hello.txt" })
 	{
 		gxrio::ifstream is(f);
-		BOOST_CHECK(is.is_open());
+		CHECK(is.is_open());
 
 		std::string line;
 
 		getline(is, line);
 
-		BOOST_CHECK_EQUAL(line, "Hello, world!");
+		CHECK(line == "Hello, world!");
 	}
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_3)
+TEST_CASE("move constructing an ifstream", "[t_3]")
 {
 	for (fs::path f : {
 			 gTestDir / "hello.txt.gz",
@@ -106,22 +94,22 @@ BOOST_AUTO_TEST_CASE(t_3)
 			 gTestDir / "hello.txt" })
 	{
 		gxrio::ifstream is1(f);
-		BOOST_CHECK(is1.is_open());
+		CHECK(is1.is_open());
 
 		gxrio::ifstream is2(std::move(is1));
-		BOOST_CHECK(is2.is_open());
+		CHECK(is2.is_open());
 
 		std::string line;
 
 		getline(is2, line);
 
-		BOOST_CHECK_EQUAL(line, "Hello, world!");
+		CHECK(line == "Hello, world!");
 	}
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_4)
+TEST_CASE("move assigning an ifstream", "[t_4]")
 {
 	for (fs::path f : {
 			 gTestDir / "hello.txt.gz",
@@ -131,24 +119,24 @@ BOOST_AUTO_TEST_CASE(t_4)
 			 gTestDir / "hello.txt" })
 	{
 		gxrio::ifstream is1(f);
-		BOOST_CHECK(is1.is_open());
+		CHECK(is1.is_open());
 
 		gxrio::ifstream is2;
 
 		is2 = std::move(is1);
-		BOOST_CHECK(is2.is_open());
+		CHECK(is2.is_open());
 
 		std::string line;
 
 		getline(is2, line);
 
-		BOOST_CHECK_EQUAL(line, "Hello, world!");
+		CHECK(line == "Hello, world!");
 	}
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_5)
+TEST_CASE("writing and reading back compressed files", "[t_5]")
 {
 	std::filesystem::create_directories(std::filesystem::temp_directory_path() / "gxrio-unit-test");
 
@@ -160,25 +148,25 @@ BOOST_AUTO_TEST_CASE(t_5)
 			 std::filesystem::temp_directory_path() / "gxrio-unit-test" / "hello.txt" })
 	{
 		gxrio::ofstream out(f);
-		BOOST_CHECK(out.is_open());
+		CHECK(out.is_open());
 
 		out << "Hello, world!" << std::endl;
 		out.close();
 
 		gxrio::ifstream in(f);
-		BOOST_CHECK(in.is_open());
+		CHECK(in.is_open());
 
 		std::string line;
 
 		getline(in, line);
 
-		BOOST_CHECK_EQUAL(line, "Hello, world!");
+		CHECK(line == "Hello, world!");
 	}
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_6)
+TEST_CASE("move constructing an ofstream", "[t_6]")
 {
 	std::filesystem::create_directories(std::filesystem::temp_directory_path() / "gxrio-unit-test");
 
@@ -190,10 +178,10 @@ BOOST_AUTO_TEST_CASE(t_6)
 			 std::filesystem::temp_directory_path() / "gxrio-unit-test" / "hello.txt" })
 	{
 		gxrio::ofstream out_1(f);
-		BOOST_CHECK(out_1.is_open());
+		CHECK(out_1.is_open());
 
 		gxrio::ofstream out_2(std::move(out_1));
-		BOOST_CHECK(out_2.is_open());
+		CHECK(out_2.is_open());
 
 		out_2 << "Hello, world!" << std::endl;
 		out_2.close();
@@ -204,13 +192,13 @@ BOOST_AUTO_TEST_CASE(t_6)
 
 		getline(in, line);
 
-		BOOST_CHECK_EQUAL(line, "Hello, world!");
+		CHECK(line == "Hello, world!");
 	}
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_7)
+TEST_CASE("move assigning an ofstream", "[t_7]")
 {
 	std::filesystem::create_directories(std::filesystem::temp_directory_path() / "gxrio-unit-test");
 
@@ -222,11 +210,11 @@ BOOST_AUTO_TEST_CASE(t_7)
 			 std::filesystem::temp_directory_path() / "gxrio-unit-test" / "hello.txt" })
 	{
 		gxrio::ofstream out_1(f);
-		BOOST_CHECK(out_1.is_open());
+		CHECK(out_1.is_open());
 
 		gxrio::ofstream out_2;
 		out_2 = std::move(out_1);
-		BOOST_CHECK(out_2.is_open());
+		CHECK(out_2.is_open());
 
 		out_2 << "Hello, world!" << std::endl;
 		out_2.close();
@@ -237,13 +225,13 @@ BOOST_AUTO_TEST_CASE(t_7)
 
 		getline(in, line);
 
-		BOOST_CHECK_EQUAL(line, "Hello, world!");
+		CHECK(line == "Hello, world!");
 	}
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_8)
+TEST_CASE("sniffing the format of a stream", "[t_8]")
 {
 	for (const auto &[text, length] : std::vector<std::tuple<const char *, size_t>>{
 			 { "Hello, world!", 13 },
@@ -267,17 +255,17 @@ BOOST_AUTO_TEST_CASE(t_8)
 		std::string line;
 		std::getline(in, line);
 
-		BOOST_CHECK(line.length() >= 13);
+		CHECK(line.length() >= 13);
 		if (line.length() < 13)
 			continue;
 
-		BOOST_CHECK(line.compare(line.length() - 13, 13, "Hello, world!") == 0);
+		CHECK(line.compare(line.length() - 13, 13, "Hello, world!") == 0);
 	}
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_9)
+TEST_CASE("swapping ifstream objects", "[t_9]")
 {
 	// swapping ifstream objects transfers the (de)compressor with the filebuf
 	gxrio::ifstream in_1, in_2;
@@ -288,7 +276,7 @@ BOOST_AUTO_TEST_CASE(t_9)
 	std::string line;
 	getline(in_2, line);
 
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 
 	std::filesystem::create_directories(std::filesystem::temp_directory_path() / "gxrio-unit-test");
 
@@ -303,12 +291,12 @@ BOOST_AUTO_TEST_CASE(t_9)
 	gxrio::ifstream in(out_file);
 	getline(in, line);
 
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_10)
+TEST_CASE("reopening with a different extension", "[t_10]")
 {
 	// reopening with a different extension must drop any stale decompressor
 	gxrio::ifstream in;
@@ -316,11 +304,11 @@ BOOST_AUTO_TEST_CASE(t_10)
 
 	std::string line;
 	getline(in, line);
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 
 	in.open(gTestDir / "hello.txt");
 	getline(in, line);
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 
 	std::filesystem::create_directories(std::filesystem::temp_directory_path() / "gxrio-unit-test");
 
@@ -337,12 +325,12 @@ BOOST_AUTO_TEST_CASE(t_10)
 
 	gxrio::ifstream in_2(out_dir / "reopen.txt");
 	getline(in_2, line);
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_11)
+TEST_CASE("moving an istream wrapping an uncompressed streambuf", "[t_11]")
 {
 	// moving a gxrio::istream that wraps an uncompressed streambuf
 	std::filebuf fb;
@@ -355,12 +343,12 @@ BOOST_AUTO_TEST_CASE(t_11)
 	std::string line;
 	getline(is_2, line);
 
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_12)
+TEST_CASE("truncated compressed input reaches eof", "[t_12]")
 {
 	// truncated compressed input reads what is available and hits eof without hanging
 	for (fs::path f : { gTestDir / "hello.txt.gz", gTestDir / "hello.txt.xz" })
@@ -384,15 +372,15 @@ BOOST_AUTO_TEST_CASE(t_12)
 
 		std::string line;
 		while (getline(in, line))
-			BOOST_CHECK(line.length() >= 13);
+			CHECK(line.length() >= 13);
 
-		BOOST_CHECK(in.eof());
+		CHECK(in.eof());
 	}
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_13)
+TEST_CASE("corrupt input sets failbit", "[t_13]")
 {
 	// corrupt input must not crash and must set failbit
 	struct membuf : public std::streambuf
@@ -413,12 +401,12 @@ BOOST_AUTO_TEST_CASE(t_13)
 	while (getline(in, line))
 		;
 
-	BOOST_CHECK(in.fail() or in.eof());
+	CHECK((in.fail() or in.eof()));
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_14)
+TEST_CASE("setting the compression level", "[t_14]")
 {
 	std::filesystem::create_directories(std::filesystem::temp_directory_path() / "gxrio-unit-test");
 
@@ -437,29 +425,29 @@ BOOST_AUTO_TEST_CASE(t_14)
 		std::string line;
 		getline(in, line);
 
-		BOOST_CHECK_EQUAL(line, "Hello, world!");
+		CHECK(line == "Hello, world!");
 	}
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_15)
+TEST_CASE("reading concatenated gzip members", "[t_21]")
 {
 	gxrio::ifstream file(gTestDir / "aap.gz");
 
-	BOOST_ASSERT(file.is_open());
+	REQUIRE(file.is_open());
 
 	std::string line;
 
-	BOOST_CHECK(getline(file, line));
-	BOOST_TEST(line == "aap");
+	CHECK(getline(file, line));
+	CHECK(line == "aap");
 
-	BOOST_CHECK(getline(file, line));
-	BOOST_TEST(line == "noot");
+	CHECK(getline(file, line));
+	CHECK(line == "noot");
 
-	BOOST_CHECK(getline(file, line));
-	BOOST_TEST(line == "mies");
+	CHECK(getline(file, line));
+	CHECK(line == "mies");
 
-	BOOST_CHECK(not getline(file, line));
-	BOOST_CHECK(file.eof());
+	CHECK(not getline(file, line));
+	CHECK(file.eof());
 }

@@ -1,19 +1,17 @@
 // Copyright Maarten L. Hekkelman, Radboud University 2008-2013.
-//        Copyright Maarten L. Hekkelman, 2014-2022
-// Distributed under the Boost Software License, Version 1.0.
-//    (See accompanying file LICENSE_1_0.txt or copy at
-//          http://www.boost.org/LICENSE_1_0.txt)
+// SPDX-FileCopyrightText: 2026 Maarten L. Hekkelman
+//
+// SPDX-License-Identifier: BSL-1.0
 
-#define BOOST_TEST_ALTERNATIVE_INIT_API
-#include <boost/test/included/unit_test.hpp>
+#include "test-main.hpp"
+
+#include <array>
 #include <filesystem>
-#include <gxrio.hpp>
+#include <fstream>
 #include <iostream>
+#include <string>
 
-namespace tt = boost::test_tools;
-namespace fs = std::filesystem;
-
-fs::path gTestDir;
+#include <gxrio.hpp>
 
 unsigned char kGZippedData[] = {
 	0x1f, 0x8b, 0x08, 0x08, 0x61, 0xb2, 0xf0, 0x62, 0x00, 0x03, 0x74,
@@ -25,22 +23,14 @@ unsigned char kGZippedData[] = {
 static_assert(sizeof(kGZippedData) == 43,
 	"That buffer should be 43 bytes in length");
 
-// --------------------------------------------------------------------
-
-bool init_unit_test()
+int main(int argc, char *argv[])
 {
-	// not a test, just initialize test dir
-	if (boost::unit_test::framework::master_test_suite().argc == 2)
-		gTestDir = boost::unit_test::framework::master_test_suite().argv[1];
-	else
-		gTestDir = fs::current_path();
-
-	return true;
+	return gxrio_test_main(argc, argv);
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_c)
+TEST_CASE("decompress an in-memory gzip buffer", "[t_c]")
 {
 	struct membuf : public std::streambuf
 	{
@@ -52,12 +42,12 @@ BOOST_AUTO_TEST_CASE(t_c)
 	std::string line;
 	std::getline(in, line);
 
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_1)
+TEST_CASE("decompress a gzip file", "[t_1]")
 {
 	fs::path f = gTestDir / "hello.txt.gz";
 
@@ -66,12 +56,12 @@ BOOST_AUTO_TEST_CASE(t_1)
 	std::string line;
 	std::getline(in, line);
 
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_100)
+TEST_CASE("decompress 100 lines", "[t_100]")
 {
 	fs::path f = gTestDir / "hello-100.txt.gz";
 
@@ -82,16 +72,16 @@ BOOST_AUTO_TEST_CASE(t_100)
 	int n = 0;
 	while (std::getline(in, line))
 	{
-		BOOST_CHECK_EQUAL(line, "Hello, world!");
+		CHECK(line == "Hello, world!");
 		++n;
 	}
 
-	BOOST_CHECK_EQUAL(n, 100);
+	CHECK(n == 100);
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(t_1000)
+TEST_CASE("decompress 1000 lines", "[t_1000]")
 {
 	fs::path f = gTestDir / "hello-1000.txt.gz";
 
@@ -104,17 +94,16 @@ BOOST_AUTO_TEST_CASE(t_1000)
 	{
 		std::string test = "Hello, world! - this is line " + std::to_string(n);
 
-		BOOST_CHECK_EQUAL(line, test);
+		CHECK(line == test);
 		++n;
 	}
 
-	BOOST_CHECK_EQUAL(n, 1000);
+	CHECK(n == 1000);
 }
 
 // --------------------------------------------------------------------
 
-// Copy an istream
-BOOST_AUTO_TEST_CASE(t_copy_1)
+TEST_CASE("move an istream", "[t_copy_1]")
 {
 	struct membuf : public std::streambuf
 	{
@@ -128,10 +117,12 @@ BOOST_AUTO_TEST_CASE(t_copy_1)
 	std::string line;
 	std::getline(in2, line);
 
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 }
 
-BOOST_AUTO_TEST_CASE(t_copy_2)
+// --------------------------------------------------------------------
+
+TEST_CASE("move an ifstream while reading", "[t_copy_2]")
 {
 	fs::path f = gTestDir / "hello-1000.txt.gz";
 
@@ -140,16 +131,16 @@ BOOST_AUTO_TEST_CASE(t_copy_2)
 	std::string line;
 
 	std::getline(in_1, line);
-	BOOST_CHECK_EQUAL(line, "Hello, world! - this is line 0");
+	CHECK(line == "Hello, world! - this is line 0");
 
 	gxrio::ifstream in_2(std::move(in_1));
 	std::getline(in_2, line);
-	BOOST_CHECK_EQUAL(line, "Hello, world! - this is line 1");
+	CHECK(line == "Hello, world! - this is line 1");
 
 	gxrio::ifstream in_3;
 	in_3 = std::move(in_2);
 	std::getline(in_3, line);
-	BOOST_CHECK_EQUAL(line, "Hello, world! - this is line 2");
+	CHECK(line == "Hello, world! - this is line 2");
 }
 
 // --------------------------------------------------------------------
@@ -182,7 +173,7 @@ class ArrayedStreamBuffer : public std::basic_streambuf<CharT>
 	std::array<char_type, SIZE> buffer_;
 };
 
-BOOST_AUTO_TEST_CASE(d_1)
+TEST_CASE("compress directly to a streambuf", "[d_1]")
 {
 	ArrayedStreamBuffer<100> buffer;
 
@@ -200,10 +191,12 @@ BOOST_AUTO_TEST_CASE(d_1)
 	std::string line;
 	std::getline(in, line);
 
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 }
 
-BOOST_AUTO_TEST_CASE(d_2)
+// --------------------------------------------------------------------
+
+TEST_CASE("round trip a 1000 line gzip file", "[d_2]")
 {
 	auto filename = "hello-1000.txt.gz";
 
@@ -216,8 +209,8 @@ BOOST_AUTO_TEST_CASE(d_2)
 	in.open(in_file);
 	out.open(out_file);
 
-	BOOST_ASSERT(in.is_open());
-	BOOST_ASSERT(out.is_open());
+	REQUIRE(in.is_open());
+	REQUIRE(out.is_open());
 
 	std::string line;
 
@@ -230,8 +223,8 @@ BOOST_AUTO_TEST_CASE(d_2)
 	in.open(in_file);
 	gxrio::ifstream in_test(out_file);
 
-	BOOST_ASSERT(in.is_open());
-	BOOST_ASSERT(in_test.is_open());
+	REQUIRE(in.is_open());
+	REQUIRE(in_test.is_open());
 
 	int n = 0;
 	std::string test_line;
@@ -241,21 +234,21 @@ BOOST_AUTO_TEST_CASE(d_2)
 		bool b1 = (bool)getline(in, line);
 		bool b2 = (bool)getline(in_test, test_line);
 
-		BOOST_CHECK(b1 == b2);
+		CHECK(b1 == b2);
 
 		if (not(b1 and b2))
 			break;
 
-		BOOST_CHECK_EQUAL(line, test_line);
+		CHECK(line == test_line);
 		++n;
 	}
 
-	BOOST_CHECK_EQUAL(n, 1000);
+	CHECK(n == 1000);
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(d_3)
+TEST_CASE("move an ogzip streambuf while compressing", "[d_3]")
 {
 	ArrayedStreamBuffer<100> buffer;
 
@@ -283,12 +276,12 @@ BOOST_AUTO_TEST_CASE(d_3)
 	std::string line;
 	std::getline(in, line);
 
-	BOOST_CHECK_EQUAL(line, "aap noot mies");
+	CHECK(line == "aap noot mies");
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(d_4)
+TEST_CASE("move an igzip streambuf while decompressing", "[d_4]")
 {
 	// moving a basic_igzip_streambuf while decompressing
 	struct membuf : public std::streambuf
@@ -315,12 +308,12 @@ BOOST_AUTO_TEST_CASE(d_4)
 	while ((ch = zb3.sbumpc()) != std::char_traits<char>::eof())
 		line += static_cast<char>(ch);
 
-	BOOST_CHECK_EQUAL(line, "llo, world!\n");
+	CHECK(line == "llo, world!\n");
 }
 
 // --------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(d_5)
+TEST_CASE("set the compression level on a streambuf", "[d_5]")
 {
 	ArrayedStreamBuffer<100> buffer;
 
@@ -339,5 +332,5 @@ BOOST_AUTO_TEST_CASE(d_5)
 	std::string line;
 	std::getline(in, line);
 
-	BOOST_CHECK_EQUAL(line, "Hello, world!");
+	CHECK(line == "Hello, world!");
 }
