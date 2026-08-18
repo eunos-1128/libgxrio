@@ -8,6 +8,7 @@
   and share a common `test/test-main.hpp` that provides the Catch2 main and a
   `--testdir` command line option.
 - The test suite no longer depends on Boost.
+- Added noexcept where applicable
 
 ## [1.1.0] - 2026-08-16
 

@@ -66,7 +66,7 @@ class basic_streambuf : public std::basic_streambuf<CharT, Traits>
 
 	basic_streambuf(const basic_streambuf &) = delete;
 
-	basic_streambuf(basic_streambuf &&rhs)
+	basic_streambuf(basic_streambuf &&rhs) noexcept
 		: streambuf_type(std::move(rhs))
 	{
 		m_upstream = std::exchange(rhs.m_upstream, nullptr);
@@ -74,13 +74,13 @@ class basic_streambuf : public std::basic_streambuf<CharT, Traits>
 
 	basic_streambuf &operator=(const basic_streambuf &) = delete;
 
-	basic_streambuf &operator=(basic_streambuf &&rhs)
+	basic_streambuf &operator=(basic_streambuf &&rhs) noexcept
 	{
 		m_upstream = std::exchange(rhs.m_upstream, nullptr);
 		return *this;
 	}
 
-	void set_upstream(streambuf_type *upstream)
+	void set_upstream(streambuf_type *upstream) noexcept
 	{
 		m_upstream = upstream;
 	}
@@ -89,7 +89,7 @@ class basic_streambuf : public std::basic_streambuf<CharT, Traits>
 	virtual basic_streambuf *close() = 0;
 
 	/// \brief Set the compression level, only meaningful for the compressing streambufs
-	virtual void set_compression_level(int /*level*/) {}
+	virtual void set_compression_level(int /*level*/) noexcept {}
 
   protected:
 	/// \brief The upstream streambuf object, usually this is a basic_filebuf
@@ -128,7 +128,7 @@ class basic_igzip_streambuf : public basic_streambuf<CharT, Traits>
 	basic_igzip_streambuf(const basic_igzip_streambuf &) = delete;
 
 	/// \brief Move constructor
-	basic_igzip_streambuf(basic_igzip_streambuf &&rhs)
+	basic_igzip_streambuf(basic_igzip_streambuf &&rhs) noexcept
 		: base_type(std::move(rhs))
 	{
 		std::swap(m_zstream, rhs.m_zstream);
@@ -150,7 +150,7 @@ class basic_igzip_streambuf : public basic_streambuf<CharT, Traits>
 	basic_igzip_streambuf &operator=(const basic_igzip_streambuf &) = delete;
 
 	/// \brief Move operator= implementation
-	basic_igzip_streambuf &operator=(basic_igzip_streambuf &&rhs)
+	basic_igzip_streambuf &operator=(basic_igzip_streambuf &&rhs) noexcept
 	{
 		base_type::operator=(std::move(rhs));
 
@@ -178,7 +178,7 @@ class basic_igzip_streambuf : public basic_streambuf<CharT, Traits>
 	}
 
 	/// \brief This closes the zlib stream and sets the get pointers to null.
-	base_type *close() override
+	base_type *close() noexcept override
 	{
 		if (m_zstream)
 		{
@@ -325,7 +325,7 @@ class basic_ogzip_streambuf : public basic_streambuf<CharT, Traits>
 	basic_ogzip_streambuf(const basic_ogzip_streambuf &) = delete;
 
 	/// \brief Move constructor
-	basic_ogzip_streambuf(basic_ogzip_streambuf &&rhs)
+	basic_ogzip_streambuf(basic_ogzip_streambuf &&rhs) noexcept
 		: base_type(std::move(rhs))
 	{
 		std::swap(m_zstream, rhs.m_zstream);
@@ -342,7 +342,7 @@ class basic_ogzip_streambuf : public basic_streambuf<CharT, Traits>
 	basic_ogzip_streambuf &operator=(const basic_ogzip_streambuf &) = delete;
 
 	/// \brief Move operator=
-	basic_ogzip_streambuf &operator=(basic_ogzip_streambuf &&rhs)
+	basic_ogzip_streambuf &operator=(basic_ogzip_streambuf &&rhs) noexcept
 	{
 		base_type::operator=(std::move(rhs));
 
@@ -386,7 +386,7 @@ class basic_ogzip_streambuf : public basic_streambuf<CharT, Traits>
 	}
 
 	/// \brief Set the compression level, 0 (no compression) to 9 (maximum compression)
-	void set_compression_level(int level) override
+	void set_compression_level(int level) noexcept override
 	{
 		m_compression_level = level;
 	}
@@ -540,7 +540,7 @@ class basic_ixz_streambuf : public basic_streambuf<CharT, Traits>
 	basic_ixz_streambuf(const basic_ixz_streambuf &) = delete;
 
 	/// \brief Move constructor
-	basic_ixz_streambuf(basic_ixz_streambuf &&rhs)
+	basic_ixz_streambuf(basic_ixz_streambuf &&rhs) noexcept
 		: base_type(std::move(rhs))
 	{
 		std::swap(m_xzstream, rhs.m_xzstream);
@@ -561,7 +561,7 @@ class basic_ixz_streambuf : public basic_streambuf<CharT, Traits>
 	basic_ixz_streambuf &operator=(const basic_ixz_streambuf &) = delete;
 
 	/// \brief Move operator= implementation
-	basic_ixz_streambuf &operator=(basic_ixz_streambuf &&rhs)
+	basic_ixz_streambuf &operator=(basic_ixz_streambuf &&rhs) noexcept
 	{
 		base_type::operator=(std::move(rhs));
 		std::swap(m_xzstream, rhs.m_xzstream);
@@ -587,7 +587,7 @@ class basic_ixz_streambuf : public basic_streambuf<CharT, Traits>
 	}
 
 	/// \brief This closes the xz stream and sets the get pointers to null.
-	base_type *close() override
+	base_type *close() noexcept override
 	{
 		if (m_xzstream)
 		{
@@ -707,7 +707,7 @@ class basic_oxz_streambuf : public basic_streambuf<CharT, Traits>
 	basic_oxz_streambuf(const basic_oxz_streambuf &) = delete;
 
 	/// \brief Move constructor
-	basic_oxz_streambuf(basic_oxz_streambuf &&rhs)
+	basic_oxz_streambuf(basic_oxz_streambuf &&rhs) noexcept
 		: base_type(std::move(rhs))
 	{
 		std::swap(m_xzstream, rhs.m_xzstream);
@@ -723,7 +723,7 @@ class basic_oxz_streambuf : public basic_streambuf<CharT, Traits>
 	basic_oxz_streambuf &operator=(const basic_oxz_streambuf &) = delete;
 
 	/// \brief Move operator=
-	basic_oxz_streambuf &operator=(basic_oxz_streambuf &&rhs)
+	basic_oxz_streambuf &operator=(basic_oxz_streambuf &&rhs) noexcept
 	{
 		base_type::operator=(std::move(rhs));
 
@@ -765,7 +765,7 @@ class basic_oxz_streambuf : public basic_streambuf<CharT, Traits>
 	}
 
 	/// \brief Set the compression level, 0 (no compression) to 9 (maximum compression)
-	void set_compression_level(int level) override
+	void set_compression_level(int level) noexcept override
 	{
 		m_compression_level = level;
 	}
@@ -895,7 +895,7 @@ class basic_prefix_streambuf : public std::basic_streambuf<CharT, Traits>
 	using int_type = typename traits_type::int_type;
 	using streambuf_type = std::basic_streambuf<CharT, Traits>;
 
-	basic_prefix_streambuf(streambuf_type *upstream, const char_type *prefix, std::streamsize length)
+	basic_prefix_streambuf(streambuf_type *upstream, const char_type *prefix, std::streamsize length) noexcept
 		: m_upstream(upstream)
 	{
 		std::copy(prefix, prefix + length, m_prefix.begin());
@@ -965,7 +965,7 @@ class basic_istream : public std::basic_istream<CharT, Traits>
 #endif
 
 	/// \brief Regular move constructor
-	basic_istream(basic_istream &&rhs)
+	basic_istream(basic_istream &&rhs) noexcept
 		: base_type(std::move(rhs))
 	{
 		m_gxriobuf = std::move(rhs.m_gxriobuf);
@@ -976,7 +976,7 @@ class basic_istream : public std::basic_istream<CharT, Traits>
 	}
 
 	/// \brief Regular move operator=
-	basic_istream &operator=(basic_istream &&rhs)
+	basic_istream &operator=(basic_istream &&rhs) noexcept
 	{
 		base_type::operator=(std::move(rhs));
 		m_gxriobuf = std::move(rhs.m_gxriobuf);
@@ -1165,7 +1165,7 @@ class basic_ifstream : public basic_istream<CharT, Traits>
 	}
 
 	/// \brief Move constructor
-	basic_ifstream(basic_ifstream &&rhs)
+	basic_ifstream(basic_ifstream &&rhs) noexcept
 		: base_type(std::move(rhs))
 	{
 		m_filebuf = std::move(rhs.m_filebuf);
@@ -1182,7 +1182,7 @@ class basic_ifstream : public basic_istream<CharT, Traits>
 	basic_ifstream &operator=(const basic_ifstream &) = delete;
 
 	/// \brief Move version of operator=
-	basic_ifstream &operator=(basic_ifstream &&rhs)
+	basic_ifstream &operator=(basic_ifstream &&rhs) noexcept
 	{
 		base_type::operator=(std::move(rhs));
 
@@ -1254,7 +1254,7 @@ class basic_ifstream : public basic_istream<CharT, Traits>
 	/// \brief Return true if the file is open
 	/// \return m_filebuf.is_open()
 
-	bool is_open() const
+	bool is_open() const noexcept
 	{
 		return m_filebuf.is_open();
 	}
@@ -1275,7 +1275,7 @@ class basic_ifstream : public basic_istream<CharT, Traits>
 	/// \brief Swap the contents with those of \a rhs
 	/// \param rhs The ifstream to swap with
 
-	void swap(basic_ifstream &rhs)
+	void swap(basic_ifstream &rhs) noexcept
 	{
 		base_type::swap(rhs);
 		m_filebuf.swap(rhs.m_filebuf);
@@ -1331,7 +1331,7 @@ class basic_ostream : public std::basic_ostream<CharT, Traits>
 	using upstreambuf_type = std::basic_streambuf<char_type, traits_type>;
 
 	/// \brief Regular move constructor
-	basic_ostream(basic_ostream &&rhs)
+	basic_ostream(basic_ostream &&rhs) noexcept
 		: base_type(std::move(rhs))
 	{
 		m_gxriobuf = std::move(rhs.m_gxriobuf);
@@ -1341,7 +1341,7 @@ class basic_ostream : public std::basic_ostream<CharT, Traits>
 	}
 
 	/// \brief Regular move operator=
-	basic_ostream &operator=(basic_ostream &&rhs)
+	basic_ostream &operator=(basic_ostream &&rhs) noexcept
 	{
 		base_type::operator=(std::move(rhs));
 		m_gxriobuf = std::move(rhs.m_gxriobuf);
@@ -1432,7 +1432,7 @@ class basic_ofstream : public basic_ostream<CharT, Traits>
 	}
 
 	/// \brief Move constructor
-	basic_ofstream(basic_ofstream &&rhs)
+	basic_ofstream(basic_ofstream &&rhs) noexcept
 		: base_type(std::move(rhs))
 	{
 		m_filebuf = std::move(rhs.m_filebuf);
@@ -1449,7 +1449,7 @@ class basic_ofstream : public basic_ostream<CharT, Traits>
 	basic_ofstream &operator=(const basic_ofstream &) = delete;
 
 	/// \brief Move operator=
-	basic_ofstream &operator=(basic_ofstream &&rhs)
+	basic_ofstream &operator=(basic_ofstream &&rhs) noexcept
 	{
 		base_type::operator=(std::move(rhs));
 		m_filebuf = std::move(rhs.m_filebuf);
@@ -1547,7 +1547,7 @@ class basic_ofstream : public basic_ostream<CharT, Traits>
 	/// \brief Return true if the file is open
 	/// \return m_filebuf.is_open()
 
-	bool is_open() const
+	bool is_open() const noexcept
 	{
 		return m_filebuf.is_open();
 	}
@@ -1568,7 +1568,7 @@ class basic_ofstream : public basic_ostream<CharT, Traits>
 	/// \brief Swap the contents with those of \a rhs
 	/// \param rhs The ifstream to swap with
 
-	void swap(basic_ofstream &rhs)
+	void swap(basic_ofstream &rhs) noexcept
 	{
 		base_type::swap(rhs);
 		m_filebuf.swap(rhs.m_filebuf);
